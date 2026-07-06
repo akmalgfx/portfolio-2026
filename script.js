@@ -147,6 +147,91 @@ if (ctaGroup && shortsSection) {
   updateCta();
 }
 
+// ---------- smooth (inertia) scrolling ----------
+// Lightweight Lenis-style momentum scroll: wheel/trackpad input is captured
+// and eased toward a target position via a rAF lerp, giving the page a
+// buttery, weighted feel. Touch scrolling is left native (custom momentum
+// feels wrong under a finger) and the whole thing bows out for
+// prefers-reduced-motion and coarse pointers.
+
+(() => {
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isTouch = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+  if (prefersReduced || isTouch) return;
+
+  const root = document.documentElement;
+  root.classList.add('has-smooth-scroll');
+
+  const EASE = 0.09;      // 0–1; lower = heavier / longer glide
+  const WHEEL_MULT = 1;   // scale raw wheel delta
+
+  let target = window.scrollY;
+  let current = target;
+  let running = false;
+
+  const maxScroll = () =>
+    Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+
+  const clamp = (v) => Math.max(0, Math.min(v, maxScroll()));
+
+  // Skip the effect while the page is locked (e.g. lightbox open) or when
+  // focus is inside a scrollable form control.
+  const isLocked = () => document.body.style.overflow === 'hidden';
+
+  function frame() {
+    current += (target - current) * EASE;
+    if (Math.abs(target - current) < 0.4) {
+      current = target;
+      running = false;
+    }
+    window.scrollTo(0, current);
+    if (running) requestAnimationFrame(frame);
+  }
+
+  function start() {
+    if (!running) {
+      running = true;
+      requestAnimationFrame(frame);
+    }
+  }
+
+  window.addEventListener('wheel', (e) => {
+    if (isLocked() || e.ctrlKey) return; // let pinch-zoom / locked states pass
+    e.preventDefault();
+    target = clamp(target + e.deltaY * WHEEL_MULT);
+    start();
+  }, { passive: false });
+
+  // Keep our target in sync when the browser scrolls for reasons we didn't
+  // drive (keyboard, scrollbar drag, focus jumps, resize).
+  window.addEventListener('scroll', () => {
+    if (!running) {
+      current = window.scrollY;
+      target = current;
+    }
+  }, { passive: true });
+
+  window.addEventListener('resize', () => {
+    target = clamp(target);
+  });
+
+  // Route same-page anchor links (nav, back-to-top, CTAs) through the lerp so
+  // they glide with the same easing instead of jumping.
+  const HEADER_OFFSET = 80;
+  document.querySelectorAll('a[href^="#"]').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      const id = link.getAttribute('href');
+      if (id === '#' || id.length < 2) return;
+      const dest = document.querySelector(id);
+      if (!dest) return;
+      e.preventDefault();
+      const top = dest.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
+      target = clamp(id === '#top' ? 0 : top);
+      start();
+    });
+  });
+})();
+
 // ---------- scroll reveals ----------
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

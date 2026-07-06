@@ -53,8 +53,13 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 5rem; /* clear the sticky header on anchor jumps */
   background: var(--ink);
 }
+
+/* When JS inertia scrolling is active, hand scroll control to the rAF loop
+   so native smooth-scroll doesn't fight the lerp. */
+html.has-smooth-scroll { scroll-behavior: auto; }
 
 body {
   margin: 0;
