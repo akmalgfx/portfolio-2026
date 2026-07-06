@@ -894,14 +894,19 @@ a.work-card:hover .browser-frame img { transform: scale(1.02); }
   visibility: visible;
 }
 
-.lightbox-video {
+.lightbox-video,
+.lightbox-embed {
   width: 100%;
   max-width: 1120px;
   max-height: 85vh;
   aspect-ratio: 16 / 9;
   background: #000;
   outline: none;
+  border: 0;
 }
+
+.lightbox-video[hidden],
+.lightbox-embed[hidden] { display: none; }
 
 .lightbox-close {
   appearance: none;

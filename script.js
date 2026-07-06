@@ -69,24 +69,41 @@ document.querySelectorAll('.reveal-1, .reveal-2, .reveal-3, .reveal-4').forEach(
 
 const lightbox = document.getElementById('lightbox');
 const lightboxVideo = document.getElementById('lightbox-video');
+const lightboxEmbed = document.getElementById('lightbox-embed');
 const lightboxClose = document.getElementById('lightbox-close');
 let lastTrigger = null;
 
 function openLightbox(trigger) {
   lastTrigger = trigger;
-  lightboxVideo.src = trigger.dataset.video;
+  const youtubeId = trigger.dataset.youtube;
+
+  if (youtubeId) {
+    // YouTube embed
+    lightboxVideo.hidden = true;
+    lightboxEmbed.hidden = false;
+    lightboxEmbed.src = `https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0`;
+  } else {
+    // self-hosted mp4
+    lightboxEmbed.hidden = true;
+    lightboxVideo.hidden = false;
+    lightboxVideo.src = trigger.dataset.video;
+    lightboxVideo.play();
+  }
+
   lightbox.classList.add('is-open');
   document.body.style.overflow = 'hidden';
-  lightboxVideo.play();
   lightboxClose.focus({ preventScroll: true });
 }
 
 function closeLightbox() {
   lightbox.classList.remove('is-open');
   document.body.style.overflow = '';
+  // stop the mp4
   lightboxVideo.pause();
   lightboxVideo.removeAttribute('src');
   lightboxVideo.load();
+  // stop the YouTube embed
+  lightboxEmbed.removeAttribute('src');
   if (lastTrigger) lastTrigger.focus({ preventScroll: true });
 }
 
