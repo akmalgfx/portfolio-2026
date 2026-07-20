@@ -428,6 +428,11 @@ a { color: inherit; }
 
 .short-media { min-width: 0; }
 
+/* poster that links out to the trailer */
+.short-poster-link { display: block; text-decoration: none; }
+.short-poster-link .work-poster { transition: opacity 0.4s var(--ease), transform 0.4s var(--ease); }
+.short-poster-link:hover .work-poster { opacity: 0.82; transform: scale(1.02); }
+
 .short-embed {
   display: block;
   width: 100%;
