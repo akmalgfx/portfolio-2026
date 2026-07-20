@@ -116,6 +116,9 @@ a { color: inherit; }
 
 @keyframes blink { 50% { opacity: 0.15; } }
 
+/* solid, non-blinking variant */
+.slate-dot.is-static { animation: none; opacity: 1; }
+
 .accent { color: var(--accent); }
 
 /* two-tone copy: sentence starts in bone, trails off dim */
