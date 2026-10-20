@@ -1,11 +1,11 @@
-// Akmal — portfolio interactions: mobile nav, work filters, scroll reveals.
+// Akmalgfx — portfolio interactions: mobile nav, work filters, lightbox, scroll reveals.
 
 // ---------- hero background video ----------
 // An unsourced <video> still renders as a solid black box in most browsers,
 // which is visibly darker than the --ink page background and shows as a
 // seam. Keep it hidden until a real <source> is added.
 
-const heroVideo = document.querySelector('.hero-bg-video');
+const heroVideo = document.querySelector('.reel-video');
 
 if (heroVideo && !heroVideo.querySelector('source')) {
   heroVideo.style.display = 'none';
@@ -49,20 +49,6 @@ filters.forEach((btn) => {
       card.classList.toggle('is-hidden', !show);
     });
   });
-});
-
-// ---------- hero load reveal cleanup ----------
-// animation-fill-mode: forwards keeps these elements permanently promoted to
-// their own compositor layer, which can render a faint seam against the
-// solid dark background. Drop the animation once it's done so the layer
-// is released and the element paints normally again.
-
-document.querySelectorAll('.reveal-1, .reveal-2, .reveal-3, .reveal-4').forEach((el) => {
-  el.addEventListener('animationend', () => {
-    el.style.animation = 'none';
-    el.style.opacity = '1';
-    el.style.transform = 'none';
-  }, { once: true });
 });
 
 // ---------- video lightbox ----------
@@ -122,18 +108,18 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ---------- sticky CTA reveal ----------
-// Show the floating mobile buttons only once the user has scrolled past the
-// bottom of the Short Films section.
+// Show the floating mobile "Book a call" once the intro's own buttons have
+// scrolled out of view.
 
-const ctaGroup = document.querySelector('.mobile-cta-group');
-const shortsSection = document.getElementById('shorts');
+const mobileCta = document.querySelector('.mobile-cta');
+const introActions = document.querySelector('.intro-actions');
 
-if (ctaGroup && shortsSection) {
+if (mobileCta && introActions) {
   let ticking = false;
 
   const updateCta = () => {
-    const scrolledPast = shortsSection.getBoundingClientRect().bottom <= 0;
-    ctaGroup.classList.toggle('is-visible', scrolledPast);
+    const scrolledPast = introActions.getBoundingClientRect().bottom <= 0;
+    mobileCta.classList.toggle('is-visible', scrolledPast);
     ticking = false;
   };
 
@@ -217,7 +203,7 @@ if (ctaGroup && shortsSection) {
 
   // Route same-page anchor links (nav, back-to-top, CTAs) through the lerp so
   // they glide with the same easing instead of jumping.
-  const HEADER_OFFSET = 80;
+  const HEADER_OFFSET = 64;
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
     link.addEventListener('click', (e) => {
       const id = link.getAttribute('href');
@@ -233,25 +219,72 @@ if (ctaGroup && shortsSection) {
 })();
 
 // ---------- scroll reveals ----------
+// Items fade up a few pixels as they arrive, staggered within their group.
+// Two rules keep this from ever stranding content:
+//
+//   1. Nothing in the first viewport is ever armed, so the opening fold is
+//      always painted — no JS and reduced motion still get a finished page.
+//   2. What's armed below the fold is released by a timer, not by an
+//      IntersectionObserver or requestAnimationFrame. Headless and
+//      background renderers skip both, which would leave every armed
+//      section blank for the whole visit.
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-if (!reduceMotion && 'IntersectionObserver' in window) {
-  const targets = document.querySelectorAll('.section-head, .work-card, .short, .service, .process li, .about, .tool, .contact-headline');
+if (!reduceMotion) {
+  const GROUPS = [
+    // [selector, group selector for the stagger index]
+    ['.work-card', '.work-grid'],
+    ['.short', '.shorts'],
+    ['.ugc-card', '.ugc-grid'],
+    ['.service', '.services'],
+    ['.about-photo, .about-text', '.about'],
+  ];
 
-  targets.forEach((el) => el.classList.add('will-reveal'));
+  // Below this line an element is close enough to the fold to count as
+  // already on screen; arming it would just make the first paint incomplete.
+  const armLine = () => window.innerHeight * 0.92;
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
-  );
+  let armed = [];
 
-  targets.forEach((el) => observer.observe(el));
+  GROUPS.forEach(([selector, groupSel]) => {
+    document.querySelectorAll(selector).forEach((el) => {
+      if (el.getBoundingClientRect().top < armLine()) return;
+
+      const group = el.closest(groupSel);
+      const siblings = group ? [...group.querySelectorAll(selector)] : [];
+      el.dataset.stagger = String(Math.max(0, siblings.indexOf(el)) % 2);
+      el.classList.add('will-rise');
+      armed.push(el);
+    });
+  });
+
+  let poll = 0;
+
+  const reveal = () => {
+    const line = window.innerHeight - 40;
+
+    armed = armed.filter((el) => {
+      if (el.getBoundingClientRect().top > line) return true;
+      el.classList.add('is-visible');
+      return false;
+    });
+
+    if (!armed.length) {
+      window.removeEventListener('scroll', reveal);
+      window.removeEventListener('resize', reveal);
+      clearInterval(poll);
+    }
+  };
+
+  // A timer, not requestAnimationFrame or an IntersectionObserver: renderers
+  // that aren't painting skip both, and every armed section would then stay
+  // hidden for the whole visit. reveal() only toggles classes, so it doesn't
+  // need to be frame-aligned, and the list shrinks to nothing as it goes —
+  // the interval clears itself on the last reveal.
+  poll = setInterval(reveal, 150);
+
+  window.addEventListener('scroll', reveal, { passive: true });
+  window.addEventListener('resize', reveal);
+  reveal();
 }
