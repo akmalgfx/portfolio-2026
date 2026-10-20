@@ -25,6 +25,13 @@
   --line-strong: rgba(255, 255, 255, 0.18);
   --accent: #e5322d;                      /* used for status dots only */
   --up: #34c759;                          /* growth arrows */
+  --header-bg: rgba(11, 11, 11, 0.8);
+  --chrome: #1c1c1c;                      /* browser bar on site shots */
+  --chrome-dot: rgba(255, 255, 255, 0.16);
+  --solid-hover: #fff;
+  --logo-filter: brightness(0) invert(1); /* client logos are white */
+  --shadow: rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
 
   /* ---- type ---- */
   --font: "Archivo", "Helvetica Neue", Arial, sans-serif;
@@ -48,6 +55,29 @@
   --z-cta: 60;
   --z-modal: 100;
 }
+
+/* light theme — dark is the default; the toggle in the header sets
+   data-theme="light" on <html> and remembers it */
+:root[data-theme="light"] {
+  --bg: #f7f7f5;
+  --surface: #e9e9e6;
+  --fg: #111111;
+  --muted: #666666;                       /* 5.4:1 on --bg */
+  --line: rgba(0, 0, 0, 0.09);
+  --line-strong: rgba(0, 0, 0, 0.2);
+  --up: #1f9d48;                          /* darker green for contrast */
+  --header-bg: rgba(247, 247, 245, 0.8);
+  --chrome: #e2e2df;
+  --chrome-dot: rgba(0, 0, 0, 0.18);
+  --solid-hover: #000;
+  --logo-filter: brightness(0);
+  --shadow: rgba(0, 0, 0, 0.15);
+  color-scheme: light;
+}
+
+/* the page swaps colour instantly; only the toggle's icon animates.
+   Per-element colour transitions would otherwise drift out of sync. */
+:root.theme-switching *:not(.theme-icon) { transition: none !important; }
 
 /* ==========================================================================
    reset
@@ -152,7 +182,7 @@ button {
 .btn-lg { height: 3rem; padding: 0 1.4rem; font-size: var(--text-md); }
 
 @media (hover: hover) and (pointer: fine) {
-  .btn-solid:hover { background: #fff; }
+  .btn-solid:hover { background: var(--solid-hover); }
   .btn-ghost:hover { border-color: var(--fg); }
 }
 
@@ -177,17 +207,17 @@ button {
   z-index: var(--z-header);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
+  gap: 1.25rem;
   height: 4rem;
   padding: 0 var(--gutter);
-  background: rgba(11, 11, 11, 0.8);
+  background: var(--header-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid transparent;
 }
 
 .brand {
+  margin-right: auto;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
@@ -210,9 +240,44 @@ button {
 
 .nav-cta { height: 2.25rem; }
 
+/* theme toggle: two stacked icons, the outgoing one turns away as the
+   incoming one settles — state indication, 200ms, transform + opacity */
+.theme-toggle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  transition: border-color 160ms ease, transform 160ms var(--ease-out);
+}
+
+.theme-toggle:active { transform: scale(0.94); }
+
+@media (hover: hover) and (pointer: fine) {
+  .theme-toggle:hover { border-color: var(--fg); }
+}
+
+.theme-icon {
+  grid-area: 1 / 1;
+  width: 16px;
+  height: 16px;
+  transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
+}
+
+/* dark theme shows the sun (what you'll switch to), light shows the moon */
+.theme-icon--moon { opacity: 0; transform: rotate(-45deg) scale(0.75); }
+
+:root[data-theme="light"] .theme-icon--sun { opacity: 0; transform: rotate(45deg) scale(0.75); }
+:root[data-theme="light"] .theme-icon--moon { opacity: 1; transform: none; }
+
 .nav-toggle { display: none; }
 
 @media (max-width: 760px) {
+  .site-header { gap: 0.5rem; }
+
   .nav-toggle {
     display: grid;
     gap: 6px;
@@ -362,7 +427,7 @@ button {
 .client-logos img {
   height: 22px;
   width: auto;
-  filter: brightness(0) invert(1);
+  filter: var(--logo-filter);
   opacity: 0.55;
 }
 
@@ -479,7 +544,7 @@ button {
   flex: none;
   height: 28px;
   padding: 0 12px;
-  background: #1c1c1c;
+  background: var(--chrome);
   border-bottom: 1px solid var(--line);
 }
 
@@ -487,7 +552,7 @@ button {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.16);
+  background: var(--chrome-dot);
 }
 
 .browser-bar em {
@@ -835,7 +900,7 @@ button {
     bottom: max(1rem, env(safe-area-inset-bottom));
     z-index: var(--z-cta);
     height: 2.75rem;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 24px var(--shadow);
     opacity: 0;
     transform: translateY(8px);
     pointer-events: none;

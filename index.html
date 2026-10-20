@@ -7,6 +7,16 @@
   <meta name="description" content="Akmal is a video editor and creative producer. Brand films, motion design, event films and websites.">
   <meta name="theme-color" content="#0b0b0b">
 
+  <!-- apply the saved theme before first paint so the page never flashes -->
+  <script>
+    try {
+      if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.dataset.theme = 'light';
+        document.querySelector('meta[name="theme-color"]').content = '#f7f7f5';
+      }
+    } catch (e) {}
+  </script>
+
   <!-- favicons: dark mark on light tab bars, light mark on dark tab bars -->
   <link rel="icon" href="assets/favicon-dark.ico" sizes="any">
   <link rel="icon" type="image/png" href="assets/favicon-dark.png" media="(prefers-color-scheme: light)">
@@ -28,7 +38,7 @@
 
   <link rel="preload" href="assets/fonts/Archivo-Variable.woff2" as="font" type="font/woff2" crossorigin>
 
-  <link rel="stylesheet" href="styles.css?v=26">
+  <link rel="stylesheet" href="styles.css?v=27">
 </head>
 <body>
 
@@ -42,6 +52,16 @@
       <a href="#contact">Contact</a>
       <a class="btn btn-solid nav-cta" href="https://calendly.com/akmalpafsal/30min" target="_blank" rel="noopener">Book a call</a>
     </nav>
+
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to light theme">
+      <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+      </svg>
+      <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11Z"/>
+      </svg>
+    </button>
 
     <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="site-nav">
       <span class="nav-toggle-line"></span>
@@ -395,6 +415,6 @@
     <iframe class="lightbox-embed" id="lightbox-embed" title="Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen hidden></iframe>
   </div>
 
-  <script src="script.js?v=9"></script>
+  <script src="script.js?v=10"></script>
 </body>
 </html>

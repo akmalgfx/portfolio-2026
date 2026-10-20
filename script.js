@@ -11,6 +11,36 @@ if (heroVideo && !heroVideo.querySelector('source')) {
   heroVideo.style.display = 'none';
 }
 
+// ---------- theme toggle ----------
+// Dark is the default. The choice is remembered per browser; the inline
+// script in <head> re-applies it before first paint.
+
+const themeToggle = document.getElementById('theme-toggle');
+const themeMeta = document.querySelector('meta[name="theme-color"]');
+const root = document.documentElement;
+
+function syncThemeUi() {
+  const light = root.dataset.theme === 'light';
+  themeToggle.setAttribute('aria-label', light ? 'Switch to dark theme' : 'Switch to light theme');
+  if (themeMeta) themeMeta.content = light ? '#f7f7f5' : '#0b0b0b';
+}
+
+themeToggle.addEventListener('click', () => {
+  const next = root.dataset.theme === 'light' ? 'dark' : 'light';
+
+  // swap every colour in one frame; only the icon is allowed to animate
+  root.classList.add('theme-switching');
+  if (next === 'light') root.dataset.theme = 'light';
+  else delete root.dataset.theme;
+  getComputedStyle(root).color; // commit the new colours before re-enabling transitions
+  setTimeout(() => root.classList.remove('theme-switching'), 0);
+
+  try { localStorage.setItem('theme', next); } catch (e) {}
+  syncThemeUi();
+});
+
+syncThemeUi();
+
 // ---------- mobile nav ----------
 
 const navToggle = document.getElementById('nav-toggle');
